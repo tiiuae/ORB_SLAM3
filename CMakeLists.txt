@@ -57,6 +57,39 @@ ${EIGEN3_INCLUDE_DIR}
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
 
+
+set (H_FILES
+        include/System.h
+        include/Tracking.h
+        include/LocalMapping.h
+        include/LoopClosing.h
+        include/ORBextractor.h
+        include/ORBmatcher.h
+        include/FrameDrawer.h
+        include/Converter.h
+        include/MapPoint.h
+        include/KeyFrame.h
+        include/Atlas.h
+        include/Map.h
+        include/MapDrawer.h
+        include/Optimizer.h
+        include/PnPsolver.h
+        include/Frame.h
+        include/KeyFrameDatabase.h
+        include/Sim3Solver.h
+        include/Initializer.h
+        include/Viewer.h
+        include/ImuTypes.h
+        include/G2oTypes.h
+        include/CameraModels/GeometricCamera.h
+        include/CameraModels/Pinhole.h
+        include/CameraModels/KannalaBrandt8.h
+        include/OptimizableTypes.h
+        include/ORBVocabulary.h
+        include/MLPnPsolver.h
+        include/TwoViewReconstruction.h
+        )
+
 add_library(${PROJECT_NAME} SHARED
 src/System.cc
 src/Tracking.cc
@@ -84,34 +117,7 @@ src/CameraModels/Pinhole.cpp
 src/CameraModels/KannalaBrandt8.cpp
 src/OptimizableTypes.cpp
 src/MLPnPsolver.cpp
-include/System.h
-include/Tracking.h
-include/LocalMapping.h
-include/LoopClosing.h
-include/ORBextractor.h
-include/ORBmatcher.h
-include/FrameDrawer.h
-include/Converter.h
-include/MapPoint.h
-include/KeyFrame.h
-include/Atlas.h
-include/Map.h
-include/MapDrawer.h
-include/Optimizer.h
-include/PnPsolver.h
-include/Frame.h
-include/KeyFrameDatabase.h
-include/Sim3Solver.h
-include/Initializer.h
-include/Viewer.h
-include/ImuTypes.h
-include/G2oTypes.h
-include/CameraModels/GeometricCamera.h
-include/CameraModels/Pinhole.h
-include/CameraModels/KannalaBrandt8.h
-include/OptimizableTypes.h
-include/MLPnPsolver.h
-include/TwoViewReconstruction.h
+
 src/TwoViewReconstruction.cc)
 
 add_subdirectory(Thirdparty/g2o)
@@ -192,3 +198,55 @@ Examples/Stereo-Inertial/stereo_inertial_tum_vi.cc)
 target_link_libraries(stereo_inertial_tum_vi ${PROJECT_NAME})
 
 
+# INSTALL ORB_SLAM3
+
+# Set standard installation directories
+set(RUNTIME_DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
+set(LIBRARY_DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+set(ARCHIVE_DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+set(INCLUDES_DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
+set(INCLUDES_INSTALL_DIR ${INCLUDES_DESTINATION}/ORB_SLAM3)
+
+
+# This relative path allows installed files to be relocatable.
+set( CMAKECONFIG_INSTALL_DIR lib/cmake/${PROJECT_NAME} )
+file( RELATIVE_PATH REL_INCLUDE_DIR
+        "${CMAKE_INSTALL_PREFIX}/${CMAKECONFIG_INSTALL_DIR}"
+        "${CMAKE_INSTALL_PREFIX}/${INSTALL_INCLUDE_DIR}"
+        )
+
+set( EXPORT_LIB_INC_DIR "${PROJECT_SOURCE_DIR};${PROJECT_SOURCE_DIR}/include;${CMAKE_CURRENT_BINARY_DIR}/include" )
+
+configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.cmake.in
+        ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake @ONLY IMMEDIATE )
+
+# Install tree config
+set( EXPORT_LIB_INC_DIR "\${PROJECT_CMAKE_DIR}/${REL_INCLUDE_DIR}/${PROJECT_NAME}" )
+configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.cmake.in
+        ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/${PROJECT_NAME}Config.cmake @ONLY )
+
+export( PACKAGE ${PROJECT_NAME} )
+
+install(FILES ${H_FILES}
+        DESTINATION ${INCLUDES_DESTINATION}/ORB_SLAM3
+        )
+
+install(DIRECTORY Thirdparty DESTINATION ${INCLUDES_DESTINATION}/ORB_SLAM3)
+install(FILES Thirdparty/DBoW2/lib/libDBoW2.so DESTINATION ${LIBRARY_DESTINATION} )
+install(FILES Thirdparty/g2o/lib/libg2o.so DESTINATION ${LIBRARY_DESTINATION} )
+
+
+install(TARGETS ${PROJECT_NAME}
+        RUNTIME DESTINATION ${RUNTIME_DESTINATION}
+        LIBRARY DESTINATION ${LIBRARY_DESTINATION}
+        ARCHIVE DESTINATION ${ARCHIVE_DESTINATION}
+        INCLUDES DESTINATION ${INCLUDES_DESTINATION}
+        )
+
+## Install CMake config
+install(
+        FILES "${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/${PROJECT_NAME}Config.cmake"
+        DESTINATION ${CMAKECONFIG_INSTALL_DIR}
+)
+
+#install(EXPORT ${PROJECT_NAME}Targets DESTINATION ${CMAKECONFIG_INSTALL_DIR})
