@@ -1,36 +1,37 @@
 /**
-* This file is part of ORB-SLAM3
-*
-* Copyright (C) 2017-2020 Carlos Campos, Richard Elvira, Juan J. Gómez Rodríguez, José M.M. Montiel and Juan D. Tardós, University of Zaragoza.
-* Copyright (C) 2014-2016 Raúl Mur-Artal, José M.M. Montiel and Juan D. Tardós, University of Zaragoza.
-*
-* ORB-SLAM3 is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
-* License as published by the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* ORB-SLAM3 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
-* the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License along with ORB-SLAM3.
-* If not, see <http://www.gnu.org/licenses/>.
-*/
+ * This file is part of ORB-SLAM3
+ *
+ * Copyright (C) 2017-2020 Carlos Campos, Richard Elvira, Juan J. Gómez Rodríguez, José M.M. Montiel and Juan D. Tardós,
+ * University of Zaragoza. Copyright (C) 2014-2016 Raúl Mur-Artal, José M.M. Montiel and Juan D. Tardós, University of
+ * Zaragoza.
+ *
+ * ORB-SLAM3 is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
+ * License as published by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ORB-SLAM3 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with ORB-SLAM3.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #include "Atlas.h"
-#include "Viewer.h"
-
 #include "GeometricCamera.h"
-#include "Pinhole.h"
 #include "KannalaBrandt8.h"
+#include "Pinhole.h"
+#include "Viewer.h"
 
 namespace ORB_SLAM3
 {
 
-Atlas::Atlas(){
+Atlas::Atlas()
+{
     mpCurrentMap = static_cast<Map*>(NULL);
 }
 
-Atlas::Atlas(int initKFid): mnLastInitKFidMap(initKFid), mHasViewer(false)
+Atlas::Atlas(int initKFid) : mnLastInitKFidMap(initKFid), mHasViewer(false)
 {
     mpCurrentMap = static_cast<Map*>(NULL);
     CreateNewMap();
@@ -38,11 +39,11 @@ Atlas::Atlas(int initKFid): mnLastInitKFidMap(initKFid), mHasViewer(false)
 
 Atlas::~Atlas()
 {
-    for(std::set<Map*>::iterator it = mspMaps.begin(), end = mspMaps.end(); it != end;)
+    for (std::set<Map*>::iterator it = mspMaps.begin(), end = mspMaps.end(); it != end;)
     {
         Map* pMi = *it;
 
-        if(pMi)
+        if (pMi)
         {
             delete pMi;
             pMi = static_cast<Map*>(NULL);
@@ -51,7 +52,6 @@ Atlas::~Atlas()
         }
         else
             ++it;
-
     }
 }
 
@@ -59,15 +59,16 @@ void Atlas::CreateNewMap()
 {
     unique_lock<mutex> lock(mMutexAtlas);
     cout << "Creation of new map with id: " << Map::nNextId << endl;
-    if(mpCurrentMap){
+    if (mpCurrentMap)
+    {
         cout << "Exits current map " << endl;
-        if(!mspMaps.empty() && mnLastInitKFidMap < mpCurrentMap->GetMaxKFid())
-            mnLastInitKFidMap = mpCurrentMap->GetMaxKFid()+1; //The init KF is the next of current maximum
+        if (!mspMaps.empty() && mnLastInitKFidMap < mpCurrentMap->GetMaxKFid())
+            mnLastInitKFidMap = mpCurrentMap->GetMaxKFid() + 1;  // The init KF is the next of current maximum
 
         mpCurrentMap->SetStoredMap();
         cout << "Saved map with ID: " << mpCurrentMap->GetId() << endl;
 
-        //if(mHasViewer)
+        // if(mHasViewer)
         //    mpViewer->AddMapToCreateThumbnail(mpCurrentMap);
     }
     cout << "Creation of new map with last KF id: " << mnLastInitKFidMap << endl;
@@ -81,7 +82,8 @@ void Atlas::ChangeMap(Map* pMap)
 {
     unique_lock<mutex> lock(mMutexAtlas);
     cout << "Chage to map with id: " << pMap->GetId() << endl;
-    if(mpCurrentMap){
+    if (mpCurrentMap)
+    {
         mpCurrentMap->SetStoredMap();
     }
 
@@ -118,7 +120,7 @@ void Atlas::AddCamera(GeometricCamera* pCam)
     mvpCameras.push_back(pCam);
 }
 
-void Atlas::SetReferenceMapPoints(const std::vector<MapPoint*> &vpMPs)
+void Atlas::SetReferenceMapPoints(const std::vector<MapPoint*>& vpMPs)
 {
     unique_lock<mutex> lock(mMutexAtlas);
     mpCurrentMap->SetReferenceMapPoints(vpMPs);
@@ -171,12 +173,9 @@ vector<Map*> Atlas::GetAllMaps()
     unique_lock<mutex> lock(mMutexAtlas);
     struct compFunctor
     {
-        inline bool operator()(Map* elem1 ,Map* elem2)
-        {
-            return elem1->GetId() < elem2->GetId();
-        }
+        inline bool operator()(Map* elem1, Map* elem2) { return elem1->GetId() < elem2->GetId(); }
     };
-    vector<Map*> vMaps(mspMaps.begin(),mspMaps.end());
+    vector<Map*> vMaps(mspMaps.begin(), mspMaps.end());
     sort(vMaps.begin(), vMaps.end(), compFunctor());
     return vMaps;
 }
@@ -209,9 +208,9 @@ void Atlas::clearAtlas()
 Map* Atlas::GetCurrentMap()
 {
     unique_lock<mutex> lock(mMutexAtlas);
-    if(!mpCurrentMap)
+    if (!mpCurrentMap)
         CreateNewMap();
-    while(mpCurrentMap->IsBad())
+    while (mpCurrentMap->IsBad())
         usleep(3000);
 
     return mpCurrentMap;
@@ -261,57 +260,54 @@ bool Atlas::isImuInitialized()
 
 void Atlas::PreSave()
 {
-    if(mpCurrentMap){
-        if(!mspMaps.empty() && mnLastInitKFidMap < mpCurrentMap->GetMaxKFid())
-            mnLastInitKFidMap = mpCurrentMap->GetMaxKFid()+1; //The init KF is the next of current maximum
+    if (mpCurrentMap)
+    {
+        if (!mspMaps.empty() && mnLastInitKFidMap < mpCurrentMap->GetMaxKFid())
+            mnLastInitKFidMap = mpCurrentMap->GetMaxKFid() + 1;  // The init KF is the next of current maximum
     }
 
     struct compFunctor
     {
-        inline bool operator()(Map* elem1 ,Map* elem2)
-        {
-            return elem1->GetId() < elem2->GetId();
-        }
+        inline bool operator()(Map* elem1, Map* elem2) { return elem1->GetId() < elem2->GetId(); }
     };
     std::copy(mspMaps.begin(), mspMaps.end(), std::back_inserter(mvpBackupMaps));
     sort(mvpBackupMaps.begin(), mvpBackupMaps.end(), compFunctor());
 
     std::set<GeometricCamera*> spCams(mvpCameras.begin(), mvpCameras.end());
     cout << "There are " << spCams.size() << " cameras in the atlas" << endl;
-    for(Map* pMi : mvpBackupMaps)
+    for (Map* pMi : mvpBackupMaps)
     {
         cout << "Pre-save of map " << pMi->GetId() << endl;
         pMi->PreSave(spCams);
     }
     cout << "Maps stored" << endl;
-    for(GeometricCamera* pCam : mvpCameras)
+    for (GeometricCamera* pCam : mvpCameras)
     {
         cout << "Pre-save of camera " << pCam->GetId() << endl;
-        if(pCam->GetType() == pCam->CAM_PINHOLE)
+        if (pCam->GetType() == pCam->CAM_PINHOLE)
         {
-            mvpBackupCamPin.push_back((Pinhole*) pCam);
+            mvpBackupCamPin.push_back((Pinhole*)pCam);
         }
-        else if(pCam->GetType() == pCam->CAM_FISHEYE)
+        else if (pCam->GetType() == pCam->CAM_FISHEYE)
         {
-            mvpBackupCamKan.push_back((KannalaBrandt8*) pCam);
+            mvpBackupCamKan.push_back((KannalaBrandt8*)pCam);
         }
     }
-
 }
 
 void Atlas::PostLoad()
 {
     mvpCameras.clear();
-    map<unsigned int,GeometricCamera*> mpCams;
-    for(Pinhole* pCam : mvpBackupCamPin)
+    map<unsigned int, GeometricCamera*> mpCams;
+    for (Pinhole* pCam : mvpBackupCamPin)
     {
-        //mvpCameras.push_back((GeometricCamera*)pCam);
+        // mvpCameras.push_back((GeometricCamera*)pCam);
         mvpCameras.push_back(pCam);
         mpCams[pCam->GetId()] = pCam;
     }
-    for(KannalaBrandt8* pCam : mvpBackupCamKan)
+    for (KannalaBrandt8* pCam : mvpBackupCamKan)
     {
-        //mvpCameras.push_back((GeometricCamera*)pCam);
+        // mvpCameras.push_back((GeometricCamera*)pCam);
         mvpCameras.push_back(pCam);
         mpCams[pCam->GetId()] = pCam;
     }
@@ -319,7 +315,7 @@ void Atlas::PostLoad()
     mspMaps.clear();
     unsigned long int numKF = 0, numMP = 0;
     map<long unsigned int, KeyFrame*> mpAllKeyFrameId;
-    for(Map* pMi : mvpBackupMaps)
+    for (Map* pMi : mvpBackupMaps)
     {
         cout << "Map id:" << pMi->GetId() << endl;
         mspMaps.insert(pMi);
@@ -358,7 +354,7 @@ long unsigned int Atlas::GetNumLivedKF()
 {
     unique_lock<mutex> lock(mMutexAtlas);
     long unsigned int num = 0;
-    for(Map* mMAPi : mspMaps)
+    for (Map* mMAPi : mspMaps)
     {
         num += mMAPi->GetAllKeyFrames().size();
     }
@@ -366,14 +362,16 @@ long unsigned int Atlas::GetNumLivedKF()
     return num;
 }
 
-long unsigned int Atlas::GetNumLivedMP() {
+long unsigned int Atlas::GetNumLivedMP()
+{
     unique_lock<mutex> lock(mMutexAtlas);
     long unsigned int num = 0;
-    for (Map *mMAPi : mspMaps) {
+    for (Map* mMAPi : mspMaps)
+    {
         num += mMAPi->GetAllMapPoints().size();
     }
 
     return num;
 }
 
-} //namespace ORB_SLAM3
+}  // namespace ORB_SLAM3

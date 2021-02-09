@@ -25,77 +25,78 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "optimization_algorithm_gauss_newton.h"
-
-#include <iostream>
-
-#include "../stuff/timeutil.h"
 #include "../stuff/macros.h"
-
-#include "solver.h"
+#include "../stuff/timeutil.h"
 #include "batch_stats.h"
+#include "solver.h"
 #include "sparse_optimizer.h"
+#include <iostream>
 using namespace std;
 
-namespace g2o {
+namespace g2o
+{
 
-  OptimizationAlgorithmGaussNewton::OptimizationAlgorithmGaussNewton(Solver* solver) :
-    OptimizationAlgorithmWithHessian(solver)
-  {
-  }
+OptimizationAlgorithmGaussNewton::OptimizationAlgorithmGaussNewton(Solver* solver)
+    : OptimizationAlgorithmWithHessian(solver)
+{
+}
 
-  OptimizationAlgorithmGaussNewton::~OptimizationAlgorithmGaussNewton()
-  {
-  }
+OptimizationAlgorithmGaussNewton::~OptimizationAlgorithmGaussNewton() {}
 
-  OptimizationAlgorithm::SolverResult OptimizationAlgorithmGaussNewton::solve(int iteration, bool online)
-  {
+OptimizationAlgorithm::SolverResult OptimizationAlgorithmGaussNewton::solve(int iteration, bool online)
+{
     assert(_optimizer && "_optimizer not set");
     assert(_solver->optimizer() == _optimizer && "underlying linear solver operates on different graph");
     bool ok = true;
-    
-    //here so that correct component for max-mixtures can be computed before the build structure
-    double t=get_monotonic_time();
+
+    // here so that correct component for max-mixtures can be computed before the build structure
+    double t = get_monotonic_time();
     _optimizer->computeActiveErrors();
     G2OBatchStatistics* globalStats = G2OBatchStatistics::globalStats();
-    if (globalStats) {
-      globalStats->timeResiduals = get_monotonic_time()-t;
-    }
-    
-    if (iteration == 0 && !online) { // built up the CCS structure, here due to easy time measure
-      ok = _solver->buildStructure();
-      if (! ok) {
-        cerr << __PRETTY_FUNCTION__ << ": Failure while building CCS structure" << endl;
-        return OptimizationAlgorithm::Fail;
-      }
+    if (globalStats)
+    {
+        globalStats->timeResiduals = get_monotonic_time() - t;
     }
 
-    t=get_monotonic_time();
+    if (iteration == 0 && !online)
+    {  // built up the CCS structure, here due to easy time measure
+        ok = _solver->buildStructure();
+        if (!ok)
+        {
+            cerr << __PRETTY_FUNCTION__ << ": Failure while building CCS structure" << endl;
+            return OptimizationAlgorithm::Fail;
+        }
+    }
+
+    t = get_monotonic_time();
     _solver->buildSystem();
-    if (globalStats) {
-      globalStats->timeQuadraticForm = get_monotonic_time()-t;
-      t=get_monotonic_time();
+    if (globalStats)
+    {
+        globalStats->timeQuadraticForm = get_monotonic_time() - t;
+        t = get_monotonic_time();
     }
 
     ok = _solver->solve();
-    if (globalStats) {
-      globalStats->timeLinearSolution = get_monotonic_time()-t;
-      t=get_monotonic_time();
+    if (globalStats)
+    {
+        globalStats->timeLinearSolution = get_monotonic_time() - t;
+        t = get_monotonic_time();
     }
 
     _optimizer->update(_solver->x());
-    if (globalStats) {
-      globalStats->timeUpdate = get_monotonic_time()-t;
+    if (globalStats)
+    {
+        globalStats->timeUpdate = get_monotonic_time() - t;
     }
     if (ok)
-      return OK;
+        return OK;
     else
-      return Fail;
-  }
+        return Fail;
+}
 
-  void OptimizationAlgorithmGaussNewton::printVerbose(std::ostream& os) const
-  {
-    os
-      << "\t schur= " << _solver->schur();
-  }
+void OptimizationAlgorithmGaussNewton::printVerbose(std::ostream& os) const
+{
+    os << "\t schur= " << _solver->schur();
+}
 
-} // end namespace
+}  // namespace g2o

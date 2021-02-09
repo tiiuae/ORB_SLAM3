@@ -84,7 +84,7 @@ set(H_FILES
         include/TwoViewReconstruction.h
         )
 
-add_library(${PROJECT_NAME}
+add_library(${PROJECT_NAME} STATIC
         src/System.cc
         src/Tracking.cc
         src/LocalMapping.cc

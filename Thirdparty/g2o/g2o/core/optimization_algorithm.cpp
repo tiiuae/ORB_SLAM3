@@ -28,35 +28,32 @@
 
 using namespace std;
 
-namespace g2o {
-
-OptimizationAlgorithm::OptimizationAlgorithm() :
-  _optimizer(0)
+namespace g2o
 {
-}
 
-OptimizationAlgorithm::~OptimizationAlgorithm()
-{
-}
+OptimizationAlgorithm::OptimizationAlgorithm() : _optimizer(0) {}
+
+OptimizationAlgorithm::~OptimizationAlgorithm() {}
 
 void OptimizationAlgorithm::printProperties(std::ostream& os) const
 {
-  os << "------------- Algorithm Properties -------------"  << endl;
-  for (PropertyMap::const_iterator it = _properties.begin(); it != _properties.end(); ++it) {
-    BaseProperty* p = it->second;
-    os << it->first << "\t" << p->toString() << endl;
-  }
-  os << "------------------------------------------------" << endl;
+    os << "------------- Algorithm Properties -------------" << endl;
+    for (PropertyMap::const_iterator it = _properties.begin(); it != _properties.end(); ++it)
+    {
+        BaseProperty* p = it->second;
+        os << it->first << "\t" << p->toString() << endl;
+    }
+    os << "------------------------------------------------" << endl;
 }
 
 bool OptimizationAlgorithm::updatePropertiesFromString(const std::string& propString)
 {
-  return _properties.updateMapFromString(propString);
+    return _properties.updateMapFromString(propString);
 }
 
 void OptimizationAlgorithm::setOptimizer(SparseOptimizer* optimizer)
 {
-  _optimizer = optimizer;
+    _optimizer = optimizer;
 }
 
-} // end namespace
+}  // namespace g2o
