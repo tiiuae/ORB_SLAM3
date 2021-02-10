@@ -136,7 +136,7 @@ Frame::Frame(const cv::Mat& imLeft,
              const double& timeStamp,
              ORBextractor* extractorLeft,
              ORBextractor* extractorRight,
-             ORBVocabulary* voc,
+             std::shared_ptr<ORBVocabulary> voc,
              cv::Mat& K,
              cv::Mat& distCoef,
              const float& bf,
@@ -265,7 +265,7 @@ Frame::Frame(const cv::Mat& imGray,
              const cv::Mat& imDepth,
              const double& timeStamp,
              ORBextractor* extractor,
-             ORBVocabulary* voc,
+             std::shared_ptr<ORBVocabulary> voc,
              cv::Mat& K,
              cv::Mat& distCoef,
              const float& bf,
@@ -373,7 +373,7 @@ Frame::Frame(const cv::Mat& imGray,
 Frame::Frame(const cv::Mat& imGray,
              const double& timeStamp,
              ORBextractor* extractor,
-             ORBVocabulary* voc,
+             std::shared_ptr<ORBVocabulary> voc,
              GeometricCamera* pCamera,
              cv::Mat& distCoef,
              const float& bf,
@@ -1157,7 +1157,7 @@ Frame::Frame(const cv::Mat& imLeft,
              const double& timeStamp,
              ORBextractor* extractorLeft,
              ORBextractor* extractorRight,
-             ORBVocabulary* voc,
+             std::shared_ptr<ORBVocabulary> voc,
              cv::Mat& K,
              cv::Mat& distCoef,
              const float& bf,
@@ -1314,7 +1314,8 @@ void Frame::ComputeStereoFishEyeMatches()
     {
         if ((*it).size() >= 2 && (*it)[0].distance < (*it)[1].distance * 0.7)
         {
-            // For every good match, check parallax and reprojection error to discard spurious matches
+            // For every good match, check parallax and reprojection error to discard spurious
+            // matches
             cv::Mat p3D;
             descMatches++;
             float sigma1 = mvLevelSigma2[mvKeys[(*it)[0].queryIdx + monoLeft].octave],

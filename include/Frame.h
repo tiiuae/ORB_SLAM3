@@ -55,7 +55,7 @@ class Frame
           const double& timeStamp,
           ORBextractor* extractorLeft,
           ORBextractor* extractorRight,
-          ORBVocabulary* voc,
+          std::shared_ptr<ORBVocabulary> voc,
           cv::Mat& K,
           cv::Mat& distCoef,
           const float& bf,
@@ -69,7 +69,7 @@ class Frame
           const cv::Mat& imDepth,
           const double& timeStamp,
           ORBextractor* extractor,
-          ORBVocabulary* voc,
+          std::shared_ptr<ORBVocabulary> voc,
           cv::Mat& K,
           cv::Mat& distCoef,
           const float& bf,
@@ -82,7 +82,7 @@ class Frame
     Frame(const cv::Mat& imGray,
           const double& timeStamp,
           ORBextractor* extractor,
-          ORBVocabulary* voc,
+          std::shared_ptr<ORBVocabulary> voc,
           GeometricCamera* pCamera,
           cv::Mat& distCoef,
           const float& bf,
@@ -143,7 +143,8 @@ class Frame
                                      const bool bRight = false) const;
 
     // Search a match for each keypoint in the left image to a keypoint in the right image.
-    // If there is a match, depth is computed and the right coordinate associated to the left keypoint is stored.
+    // If there is a match, depth is computed and the right coordinate associated to the left
+    // keypoint is stored.
     void ComputeStereoMatches();
 
     // Associate a "right" coordinate to a keypoint if there is valid depth in the depthmap.
@@ -162,7 +163,7 @@ class Frame
 
   public:
     // Vocabulary used for relocalization.
-    ORBVocabulary* mpORBvocabulary;
+    std::shared_ptr<ORBVocabulary> mpORBvocabulary;
 
     // Feature extractor. The right is used only in the stereo case.
     ORBextractor *mpORBextractorLeft, *mpORBextractorRight;
@@ -193,9 +194,9 @@ class Frame
     // Number of KeyPoints.
     int N;
 
-    // Vector of keypoints (original for visualization) and undistorted (actually used by the system).
-    // In the stereo case, mvKeysUn is redundant as images must be rectified.
-    // In the RGB-D case, RGB images can be distorted.
+    // Vector of keypoints (original for visualization) and undistorted (actually used by the
+    // system). In the stereo case, mvKeysUn is redundant as images must be rectified. In the RGB-D
+    // case, RGB images can be distorted.
     std::vector<cv::KeyPoint> mvKeys, mvKeysRight;
     std::vector<cv::KeyPoint> mvKeysUn;
 
@@ -217,7 +218,8 @@ class Frame
     std::vector<bool> mvbOutlier;
     int mnCloseMPs;
 
-    // Keypoints are assigned to cells in a grid to reduce matching complexity when projecting MapPoints.
+    // Keypoints are assigned to cells in a grid to reduce matching complexity when projecting
+    // MapPoints.
     static float mfGridElementWidthInv;
     static float mfGridElementHeightInv;
     std::vector<std::size_t> mGrid[FRAME_GRID_COLS][FRAME_GRID_ROWS];
@@ -328,7 +330,7 @@ class Frame
           const double& timeStamp,
           ORBextractor* extractorLeft,
           ORBextractor* extractorRight,
-          ORBVocabulary* voc,
+          std::shared_ptr<ORBVocabulary> voc,
           cv::Mat& K,
           cv::Mat& distCoef,
           const float& bf,

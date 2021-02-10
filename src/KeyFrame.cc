@@ -1390,7 +1390,7 @@ cv::Mat KeyFrame::GetRightTranslation()
     return trw.clone();
 }
 
-void KeyFrame::SetORBVocabulary(ORBVocabulary* pORBVoc)
+void KeyFrame::SetORBVocabulary(std::shared_ptr<ORBVocabulary> pORBVoc)
 {
     mpORBvocabulary = pORBVoc;
 }

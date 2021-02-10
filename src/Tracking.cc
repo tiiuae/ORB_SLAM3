@@ -40,10 +40,10 @@ namespace ORB_SLAM3
 {
 
 Tracking::Tracking(System* pSys,
-                   ORBVocabulary* pVoc,
-                   FrameDrawer* pFrameDrawer,
-                   MapDrawer* pMapDrawer,
-                   Atlas* pAtlas,
+                   std::shared_ptr<ORBVocabulary> pVoc,
+                   // FrameDrawer* pFrameDrawer,
+                   // MapDrawer* pMapDrawer,
+                   std::shared_ptr<Atlas> pAtlas,
                    KeyFrameDatabase* pKFDB,
                    const string& strSettingPath,
                    const int sensor,
@@ -59,15 +59,12 @@ Tracking::Tracking(System* pSys,
       mpKeyFrameDB(pKFDB),
       mpInitializer(static_cast<Initializer*>(NULL)),
       mpSystem(pSys),
-      mpViewer(NULL),
-      mpFrameDrawer(pFrameDrawer),
-      mpMapDrawer(pMapDrawer),
       mpAtlas(pAtlas),
       mnLastRelocFrameId(0),
       time_recently_lost(5.0),
+      mnFirstFrameId(0),
       mnInitialFrameId(0),
       mbCreatedMap(false),
-      mnFirstFrameId(0),
       mpCamera2(nullptr)
 {
     // Load camera parameters from settings file
@@ -900,25 +897,25 @@ bool Tracking::ParseIMUParamFile(cv::FileStorage& fSettings)
     return true;
 }
 
-void Tracking::SetLocalMapper(LocalMapping* pLocalMapper)
+void Tracking::SetLocalMapper(std::shared_ptr<LocalMapping> pLocalMapper)
 {
     mpLocalMapper = pLocalMapper;
 }
 
-void Tracking::SetLoopClosing(LoopClosing* pLoopClosing)
+void Tracking::SetLoopClosing(std::shared_ptr<LoopClosing> pLoopClosing)
 {
     mpLoopClosing = pLoopClosing;
 }
 
-void Tracking::SetViewer(Viewer* pViewer)
-{
-    mpViewer = pViewer;
-}
-
-void Tracking::SetStepByStep(bool bSet)
-{
-    bStepByStep = bSet;
-}
+// void Tracking::SetViewer(Viewer* pViewer)
+//{
+//    mpViewer = pViewer;
+//}
+//
+// void Tracking::SetStepByStep(bool bSet)
+//{
+//    bStepByStep = bSet;
+//}
 
 cv::Mat Tracking::GrabImageStereo(const cv::Mat& imRectLeft,
                                   const cv::Mat& imRectRight,
@@ -1480,12 +1477,12 @@ void Tracking::Track()
     mTime_NewKF_Dec = 0;
 #endif
 
-    if (bStepByStep)
-    {
-        while (!mbStep)
-            usleep(500);
-        mbStep = false;
-    }
+    //    if (bStepByStep)
+    //    {
+    //        while (!mbStep)
+    //            usleep(500);
+    //        mbStep = false;
+    //    }
 
     if (mpLocalMapper->mbBadImu)
     {
@@ -1581,10 +1578,6 @@ void Tracking::Track()
         {
             MonocularInitialization();
         }
-
-#if 0
-        mpFrameDrawer->Update(this);
-#endif
 
         if (mState != OK)  // If rightly initialized, mState=OK
         {
@@ -1873,13 +1866,6 @@ void Tracking::Track()
             }
         }
 
-#if 0
-        // Update drawer
-        mpFrameDrawer->Update(this);
-        if(!mCurrentFrame.mTcw.empty())
-            mpMapDrawer->SetCurrentCameraPose(mCurrentFrame.mTcw);
-#endif
-
         if (bOK || mState == RECENTLY_LOST)
         {
             // Update motion model
@@ -1892,11 +1878,6 @@ void Tracking::Track()
             }
             else
                 mVelocity = cv::Mat();
-
-#if 0
-            if(mSensor == System::IMU_MONOCULAR || mSensor == System::IMU_STEREO)
-                mpMapDrawer->SetCurrentCameraPose(mCurrentFrame.mTcw);
-#endif
 
             // Clean VO matches
             for (int i = 0; i < mCurrentFrame.N; i++)

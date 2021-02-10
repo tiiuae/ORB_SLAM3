@@ -29,7 +29,7 @@ namespace ORB_SLAM3
 {
 
 LocalMapping::LocalMapping(System* pSys,
-                           Atlas* pAtlas,
+                           std::shared_ptr<Atlas> pAtlas,
                            const float bMonocular,
                            bool bInertial,
                            const string& _strSeqName)
@@ -76,12 +76,12 @@ LocalMapping::LocalMapping(System* pSys,
     BA, KFCulling, [numFixKF_LBA]" << endl; f_lm << fixed;*/
 }
 
-void LocalMapping::SetLoopCloser(LoopClosing* pLoopCloser)
+void LocalMapping::SetLoopCloser(std::shared_ptr<LoopClosing> pLoopCloser)
 {
     mpLoopCloser = pLoopCloser;
 }
 
-void LocalMapping::SetTracker(Tracking* pTracker)
+void LocalMapping::SetTracker(std::shared_ptr<Tracking> pTracker)
 {
     mpTracker = pTracker;
 }

@@ -56,10 +56,8 @@ class Tracking
 
   public:
     Tracking(System* pSys,
-             ORBVocabulary* pVoc,
-             FrameDrawer* pFrameDrawer,
-             MapDrawer* pMapDrawer,
-             Atlas* pAtlas,
+             std::shared_ptr<ORBVocabulary> pVoc,
+             std::shared_ptr<Atlas> pAtlas,
              KeyFrameDatabase* pKFDB,
              const string& strSettingPath,
              const int sensor,
@@ -83,16 +81,17 @@ class Tracking
 
     void GrabImuData(const IMU::Point& imuMeasurement);
 
-    void SetLocalMapper(LocalMapping* pLocalMapper);
-    void SetLoopClosing(LoopClosing* pLoopClosing);
-    void SetViewer(Viewer* pViewer);
-    void SetStepByStep(bool bSet);
+    void SetLocalMapper(std::shared_ptr<LocalMapping> pLocalMapper);
+    void SetLoopClosing(std::shared_ptr<LoopClosing> pLoopClosing);
+    //    void SetViewer(Viewer* pViewer);
+    //    void SetStepByStep(bool bSet);
 
     // Load new settings
     // The focal lenght should be similar or scale prediction will fail when projecting points
     void ChangeCalibration(const string& strSettingPath);
 
-    // Use this function if you have deactivated local mapping and you only want to localize the camera.
+    // Use this function if you have deactivated local mapping and you only want to localize the
+    // camera.
     void InformOnlyTracking(const bool& flag);
 
     void UpdateFrameIMU(const float s, const IMU::Bias& b, KeyFrame* pCurrentKeyFrame);
@@ -229,21 +228,21 @@ class Tracking
     IMU::Bias mLastBias;
 
     // In case of performing only localization, this flag is true when there are no matches to
-    // points in the map. Still tracking will continue if there are enough matches with temporal points.
-    // In that case we are doing visual odometry. The system will try to do relocalization to recover
-    // "zero-drift" localization to the map.
+    // points in the map. Still tracking will continue if there are enough matches with temporal
+    // points. In that case we are doing visual odometry. The system will try to do relocalization
+    // to recover "zero-drift" localization to the map.
     bool mbVO;
 
     // Other Thread Pointers
-    LocalMapping* mpLocalMapper;
-    LoopClosing* mpLoopClosing;
+    std::shared_ptr<LocalMapping> mpLocalMapper;
+    std::shared_ptr<LoopClosing> mpLoopClosing;
 
     // ORB
     ORBextractor *mpORBextractorLeft, *mpORBextractorRight;
     ORBextractor* mpIniORBextractor;
 
     // BoW
-    ORBVocabulary* mpORBVocabulary;
+    std::shared_ptr<ORBVocabulary> mpORBVocabulary;
     KeyFrameDatabase* mpKeyFrameDB;
 
     // Initalization (only for monocular)
@@ -258,14 +257,8 @@ class Tracking
     // System
     System* mpSystem;
 
-    // Drawers
-    Viewer* mpViewer;
-    FrameDrawer* mpFrameDrawer;
-    MapDrawer* mpMapDrawer;
-    bool bStepByStep;
-
     // Atlas
-    Atlas* mpAtlas;
+    std::shared_ptr<Atlas> mpAtlas;
 
     // Calibration matrix
     cv::Mat mK;

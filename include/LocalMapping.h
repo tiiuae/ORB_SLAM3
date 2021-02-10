@@ -40,14 +40,14 @@ class LocalMapping
 {
   public:
     LocalMapping(System* pSys,
-                 Atlas* pAtlas,
+                 std::shared_ptr<Atlas> pAtlas,
                  const float bMonocular,
                  bool bInertial,
                  const string& _strSeqName = std::string());
 
-    void SetLoopCloser(LoopClosing* pLoopCloser);
+    void SetLoopCloser(std::shared_ptr<LoopClosing> pLoopCloser);
 
-    void SetTracker(Tracking* pTracker);
+    void SetTracker(std::shared_ptr<Tracking> pTracker);
 
     // Main function
     void Run();
@@ -143,10 +143,9 @@ class LocalMapping
     bool mbFinished;
     std::mutex mMutexFinish;
 
-    Atlas* mpAtlas;
-
-    LoopClosing* mpLoopCloser;
-    Tracking* mpTracker;
+    std::shared_ptr<Atlas> mpAtlas;
+    std::shared_ptr<LoopClosing> mpLoopCloser;
+    std::shared_ptr<Tracking> mpTracker;
 
     std::list<KeyFrame*> mlNewKeyFrames;
 

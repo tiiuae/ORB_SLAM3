@@ -29,7 +29,10 @@
 namespace ORB_SLAM3
 {
 
-LoopClosing::LoopClosing(Atlas* pAtlas, KeyFrameDatabase* pDB, ORBVocabulary* pVoc, const bool bFixScale)
+LoopClosing::LoopClosing(std::shared_ptr<Atlas> pAtlas,
+                         KeyFrameDatabase* pDB,
+                         std::shared_ptr<ORBVocabulary> pVoc,
+                         const bool bFixScale)
     : mbResetRequested(false),
       mbResetActiveMapRequested(false),
       mbFinishRequested(false),
@@ -56,12 +59,12 @@ LoopClosing::LoopClosing(Atlas* pAtlas, KeyFrameDatabase* pDB, ORBVocabulary* pV
     mpLastCurrentKF = static_cast<KeyFrame*>(NULL);
 }
 
-void LoopClosing::SetTracker(Tracking* pTracker)
+void LoopClosing::SetTracker(std::shared_ptr<Tracking> pTracker)
 {
     mpTracker = pTracker;
 }
 
-void LoopClosing::SetLocalMapper(LocalMapping* pLocalMapper)
+void LoopClosing::SetLocalMapper(std::shared_ptr<LocalMapping> pLocalMapper)
 {
     mpLocalMapper = pLocalMapper;
 }

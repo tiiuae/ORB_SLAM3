@@ -128,8 +128,8 @@ class Atlas
     void SetKeyFrameDababase(KeyFrameDatabase* pKFDB);
     KeyFrameDatabase* GetKeyFrameDatabase();
 
-    void SetORBVocabulary(ORBVocabulary* pORBVoc);
-    ORBVocabulary* GetORBVocabulary();
+    void SetORBVocabulary(std::shared_ptr<ORBVocabulary> pORBVoc);
+    std::shared_ptr<ORBVocabulary> GetORBVocabulary();
 
     long unsigned int GetNumLivedKF();
 
@@ -138,8 +138,8 @@ class Atlas
   protected:
     std::set<Map*> mspMaps;
     std::set<Map*> mspBadMaps;
-    // Its necessary change the container from set to vector because libboost 1.58 and Ubuntu 16.04 have an error with
-    // this cointainer
+    // Its necessary change the container from set to vector because libboost 1.58 and Ubuntu 16.04
+    // have an error with this cointainer
     std::vector<Map*> mvpBackupMaps;
     Map* mpCurrentMap;
 
@@ -157,7 +157,7 @@ class Atlas
 
     // Class references for the map reconstruction from the save file
     KeyFrameDatabase* mpKeyFrameDB;
-    ORBVocabulary* mpORBVocabulary;
+    std::shared_ptr<ORBVocabulary> mpORBVocabulary;
 
 };  // class Atlas
 

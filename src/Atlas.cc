@@ -340,12 +340,12 @@ KeyFrameDatabase* Atlas::GetKeyFrameDatabase()
     return mpKeyFrameDB;
 }
 
-void Atlas::SetORBVocabulary(ORBVocabulary* pORBVoc)
+void Atlas::SetORBVocabulary(std::shared_ptr<ORBVocabulary> pORBVoc)
 {
     mpORBVocabulary = pORBVoc;
 }
 
-ORBVocabulary* Atlas::GetORBVocabulary()
+std::shared_ptr<ORBVocabulary> Atlas::GetORBVocabulary()
 {
     return mpORBVocabulary;
 }

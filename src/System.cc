@@ -44,7 +44,6 @@ System::System(const string& strVocFile,
                const string& strSequence,
                const string& strLoadingFile)
     : mSensor(sensor),
-      mpViewer(static_cast<Viewer*>(NULL)),
       mbReset(false),
       mbResetActiveMap(false),
       mbActivateLocalizationMode(false),
@@ -90,7 +89,7 @@ System::System(const string& strVocFile,
     // Load ORB Vocabulary
     cout << endl << "Loading ORB Vocabulary. This could take a while..." << endl;
 
-    mpVocabulary = new ORBVocabulary();
+    mpVocabulary = std::make_shared<ORBVocabulary>();
     bool bVocLoad = mpVocabulary->loadFromTextFile(strVocFile);
     if (!bVocLoad)
     {
@@ -104,96 +103,25 @@ System::System(const string& strVocFile,
     mpKeyFrameDatabase = new KeyFrameDatabase(*mpVocabulary);
 
     // Create the Atlas
-    // mpMap = new Map();
-    mpAtlas = new Atlas(0);
-    //----
-
-    /*if(strLoadingFile.empty())
-    {
-        //Load ORB Vocabulary
-        cout << endl << "Loading ORB Vocabulary. This could take a while..." << endl;
-
-        mpVocabulary = new ORBVocabulary();
-        bool bVocLoad = mpVocabulary->loadFromTextFile(strVocFile);
-        if(!bVocLoad)
-        {
-            cerr << "Wrong path to vocabulary. " << endl;
-            cerr << "Falied to open at: " << strVocFile << endl;
-            exit(-1);
-        }
-        cout << "Vocabulary loaded!" << endl << endl;
-
-        //Create KeyFrame Database
-        mpKeyFrameDatabase = new KeyFrameDatabase(*mpVocabulary);
-
-        //Create the Atlas
-        //mpMap = new Map();
-        mpAtlas = new Atlas(0);
-    }
-    else
-    {
-        //Load ORB Vocabulary
-        cout << endl << "Loading ORB Vocabulary. This could take a while..." << endl;
-
-        mpVocabulary = new ORBVocabulary();
-        bool bVocLoad = mpVocabulary->loadFromTextFile(strVocFile);
-        if(!bVocLoad)
-        {
-            cerr << "Wrong path to vocabulary. " << endl;
-            cerr << "Falied to open at: " << strVocFile << endl;
-            exit(-1);
-        }
-        cout << "Vocabulary loaded!" << endl << endl;
-
-        cout << "Load File" << endl;
-
-        // Load the file with an earlier session
-        //clock_t start = clock();
-        bool isRead = LoadAtlas(strLoadingFile,BINARY_FILE);
-
-        if(!isRead)
-        {
-            cout << "Error to load the file, please try with other session file or vocabulary file" << endl;
-            exit(-1);
-        }
-        mpKeyFrameDatabase = new KeyFrameDatabase(*mpVocabulary);
-
-        mpAtlas->SetKeyFrameDababase(mpKeyFrameDatabase);
-        mpAtlas->SetORBVocabulary(mpVocabulary);
-        mpAtlas->PostLoad();
-        //cout << "KF in DB: " << mpKeyFrameDatabase->mnNumKFs << "; words: " << mpKeyFrameDatabase->mnNumWords << endl;
-
-        loadedAtlas = true;
-
-        mpAtlas->CreateNewMap();
-
-        //clock_t timeElapsed = clock() - start;
-        //unsigned msElapsed = timeElapsed / (CLOCKS_PER_SEC / 1000);
-        //cout << "Binary file read in " << msElapsed << " ms" << endl;
-
-        //usleep(10*1000*1000);
-    }*/
+    mpAtlas = make_shared<Atlas>(0);
 
     if (mSensor == IMU_STEREO || mSensor == IMU_MONOCULAR)
         mpAtlas->SetInertialSensor();
 
-    // Create Drawers. These are used by the Viewer
-    // mpFrameDrawer = new FrameDrawer(mpAtlas);
-    // mpMapDrawer = new MapDrawer(mpAtlas, strSettingsFile);
-
     // Initialize the Tracking thread
-    //(it will live in the main thread of execution, the one that called this constructor)
+    //(it will live in the main thread of execution, the one that called this
+    // constructor)
     cout << "Seq. Name: " << strSequence << endl;
-    mpTracker = new Tracking(
-        this, mpVocabulary, NULL, NULL, mpAtlas, mpKeyFrameDatabase, strSettingsFile, mSensor, strSequence);
+    mpTracker =
+        make_shared<Tracking>(this, mpVocabulary, mpAtlas, mpKeyFrameDatabase, strSettingsFile, mSensor, strSequence);
 
     // Initialize the Local Mapping thread and launch
-    mpLocalMapper = new LocalMapping(this,
-                                     mpAtlas,
-                                     mSensor == MONOCULAR || mSensor == IMU_MONOCULAR,
-                                     mSensor == IMU_MONOCULAR || mSensor == IMU_STEREO,
-                                     strSequence);
-    mptLocalMapping = new thread(&ORB_SLAM3::LocalMapping::Run, mpLocalMapper);
+    mpLocalMapper = make_shared<LocalMapping>(this,
+                                              mpAtlas,
+                                              mSensor == MONOCULAR || mSensor == IMU_MONOCULAR,
+                                              mSensor == IMU_MONOCULAR || mSensor == IMU_STEREO,
+                                              strSequence);
+    mptLocalMapping = std::make_shared<std::thread>(&ORB_SLAM3::LocalMapping::Run, mpLocalMapper);
     mpLocalMapper->mInitFr = initFr;
     mpLocalMapper->mThFarPoints = fsSettings["thFarPoints"];
     if (mpLocalMapper->mThFarPoints != 0)
@@ -205,22 +133,9 @@ System::System(const string& strVocFile,
         mpLocalMapper->mbFarPoints = false;
 
     // Initialize the Loop Closing thread and launch
-    // mSensor!=MONOCULAR && mSensor!=IMU_MONOCULAR
-    mpLoopCloser =
-        new LoopClosing(mpAtlas, mpKeyFrameDatabase, mpVocabulary, mSensor != MONOCULAR);  // mSensor!=MONOCULAR);
-    mptLoopClosing = new thread(&ORB_SLAM3::LoopClosing::Run, mpLoopCloser);
+    mpLoopCloser = std::make_shared<LoopClosing>(mpAtlas, mpKeyFrameDatabase, mpVocabulary, mSensor != MONOCULAR);
 
-#if 0  // Remove pangolin
-    //Initialize the Viewer thread and launch
-    if(bUseViewer)
-    {
-        mpViewer = new Viewer(this, mpFrameDrawer,mpMapDrawer,mpTracker,strSettingsFile);
-        mptViewer = new thread(&Viewer::Run, mpViewer);
-        mpTracker->SetViewer(mpViewer);
-        mpLoopCloser->mpViewer = mpViewer;
-        mpViewer->both = mpFrameDrawer->both;
-    }
-#endif
+    mptLoopClosing = std::make_shared<std::thread>(&ORB_SLAM3::LoopClosing::Run, mpLoopCloser);
 
     // Set pointers between threads
     mpTracker->SetLocalMapper(mpLocalMapper);
@@ -293,10 +208,7 @@ cv::Mat System::TrackStereo(const cv::Mat& imLeft,
         for (size_t i_imu = 0; i_imu < vImuMeas.size(); i_imu++)
             mpTracker->GrabImuData(vImuMeas[i_imu]);
 
-    // std::cout << "start GrabImageStereo" << std::endl;
     cv::Mat Tcw = mpTracker->GrabImageStereo(imLeft, imRight, timestamp, filename);
-
-    // std::cout << "out grabber" << std::endl;
 
     unique_lock<mutex> lock2(mMutexState);
     mTrackingState = mpTracker->mState;
@@ -478,14 +390,6 @@ void System::Shutdown()
 {
     mpLocalMapper->RequestFinish();
     mpLoopCloser->RequestFinish();
-#if 0
-    if(mpViewer)
-    {
-        mpViewer->RequestFinish();
-        while(!mpViewer->isFinished())
-            usleep(5000);
-    }
-#endif
 
     // Wait until all thread have effectively stopped
     while (!mpLocalMapper->isFinished() || !mpLoopCloser->isFinished() || mpLoopCloser->isRunningGBA())
@@ -502,11 +406,6 @@ void System::Shutdown()
         }
         usleep(5000);
     }
-
-#if 0
-    if(mpViewer)
-        pangolin::BindToContext("ORB-SLAM2: Map Viewer");
-#endif
 }
 
 void System::SaveTrajectoryTUM(const string& filename)

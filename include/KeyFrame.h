@@ -381,7 +381,7 @@ class KeyFrame
                   map<long unsigned int, MapPoint*>& mpMPid,
                   map<unsigned int, GeometricCamera*>& mpCamId);
 
-    void SetORBVocabulary(ORBVocabulary* pORBVoc);
+    void SetORBVocabulary(std::shared_ptr<ORBVocabulary> pORBVoc);
     void SetKeyFrameDatabase(KeyFrameDatabase* pKFDB);
 
     bool bImu;
@@ -528,7 +528,7 @@ class KeyFrame
 
     // BoW
     KeyFrameDatabase* mpKeyFrameDB;
-    ORBVocabulary* mpORBvocabulary;
+    std::shared_ptr<ORBVocabulary> mpORBvocabulary;
 
     // Grid over the image to speed up feature matching
     std::vector<std::vector<std::vector<size_t> > > mGrid;

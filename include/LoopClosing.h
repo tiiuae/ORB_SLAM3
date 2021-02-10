@@ -50,11 +50,14 @@ class LoopClosing
         KeyFrameAndPose;
 
   public:
-    LoopClosing(Atlas* pAtlas, KeyFrameDatabase* pDB, ORBVocabulary* pVoc, const bool bFixScale);
+    LoopClosing(std::shared_ptr<Atlas> pAtlas,
+                KeyFrameDatabase* pDB,
+                std::shared_ptr<ORBVocabulary> pVoc,
+                const bool bFixScale);
 
-    void SetTracker(Tracking* pTracker);
+    void SetTracker(std::shared_ptr<Tracking> pTracker);
 
-    void SetLocalMapper(LocalMapping* pLocalMapper);
+    void SetLocalMapper(std::shared_ptr<LocalMapping> pLocalMapper);
 
     // Main function
     void Run();
@@ -140,13 +143,13 @@ class LoopClosing
     bool mbFinished;
     std::mutex mMutexFinish;
 
-    Atlas* mpAtlas;
-    Tracking* mpTracker;
+    std::shared_ptr<Atlas> mpAtlas;
+    std::shared_ptr<Tracking> mpTracker;
 
     KeyFrameDatabase* mpKeyFrameDB;
-    ORBVocabulary* mpORBVocabulary;
+    std::shared_ptr<ORBVocabulary> mpORBVocabulary;
 
-    LocalMapping* mpLocalMapper;
+    std::shared_ptr<LocalMapping> mpLocalMapper;
 
     std::list<KeyFrame*> mlpLoopKeyFrameQueue;
 
