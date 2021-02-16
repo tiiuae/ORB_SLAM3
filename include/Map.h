@@ -1,33 +1,30 @@
 /**
-* This file is part of ORB-SLAM3
-*
-* Copyright (C) 2017-2020 Carlos Campos, Richard Elvira, Juan J. Gómez Rodríguez, José M.M. Montiel and Juan D. Tardós, University of Zaragoza.
-* Copyright (C) 2014-2016 Raúl Mur-Artal, José M.M. Montiel and Juan D. Tardós, University of Zaragoza.
-*
-* ORB-SLAM3 is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
-* License as published by the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* ORB-SLAM3 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
-* the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License along with ORB-SLAM3.
-* If not, see <http://www.gnu.org/licenses/>.
-*/
-
+ * This file is part of ORB-SLAM3
+ *
+ * Copyright (C) 2017-2020 Carlos Campos, Richard Elvira, Juan J. Gómez Rodríguez, José M.M. Montiel and Juan D. Tardós,
+ * University of Zaragoza. Copyright (C) 2014-2016 Raúl Mur-Artal, José M.M. Montiel and Juan D. Tardós, University of
+ * Zaragoza.
+ *
+ * ORB-SLAM3 is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
+ * License as published by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ORB-SLAM3 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with ORB-SLAM3.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #ifndef MAP_H
 #define MAP_H
 
-#include "MapPoint.h"
 #include "KeyFrame.h"
-
-#include <set>
-#include <mutex>
-
+#include "MapPoint.h"
 #include <boost/serialization/base_object.hpp>
-
+#include <mutex>
+#include <set>
 
 namespace ORB_SLAM3
 {
@@ -41,36 +38,36 @@ class Map
 {
     friend class boost::serialization::access;
 
-    template<class Archive>
-    void serialize(Archive &ar, const unsigned int version)
+    template <class Archive>
+    void serialize(Archive& ar, const unsigned int version)
     {
-        ar & mnId;
-        ar & mnInitKFid;
-        ar & mnMaxKFid;
-        ar & mnBigChangeIdx;
+        ar& mnId;
+        ar& mnInitKFid;
+        ar& mnMaxKFid;
+        ar& mnBigChangeIdx;
         // Set of KeyFrames and MapPoints, in this version the set serializator is not working
-        //ar & mspKeyFrames;
-        //ar & mspMapPoints;
+        // ar & mspKeyFrames;
+        // ar & mspMapPoints;
 
-        ar & mvpBackupKeyFrames;
-        ar & mvpBackupMapPoints;
+        ar& mvpBackupKeyFrames;
+        ar& mvpBackupMapPoints;
 
-        ar & mvBackupKeyFrameOriginsId;
+        ar& mvBackupKeyFrameOriginsId;
 
-        ar & mnBackupKFinitialID;
-        ar & mnBackupKFlowerID;
+        ar& mnBackupKFinitialID;
+        ar& mnBackupKFlowerID;
 
-        ar & mbImuInitialized;
-        ar & mbIsInertial;
-        ar & mbIMU_BA1;
-        ar & mbIMU_BA2;
+        ar& mbImuInitialized;
+        ar& mbIsInertial;
+        ar& mbIMU_BA1;
+        ar& mbIMU_BA2;
 
-        ar & mnInitKFid;
-        ar & mnMaxKFid;
-        ar & mnLastLoopKFid;
+        ar& mnInitKFid;
+        ar& mnMaxKFid;
+        ar& mnLastLoopKFid;
     }
 
-public:
+  public:
     Map();
     Map(int initKFid);
     ~Map();
@@ -79,7 +76,7 @@ public:
     void AddMapPoint(MapPoint* pMP);
     void EraseMapPoint(MapPoint* pMP);
     void EraseKeyFrame(KeyFrame* pKF);
-    void SetReferenceMapPoints(const std::vector<MapPoint*> &vpMPs);
+    void SetReferenceMapPoints(const std::vector<MapPoint*>& vpMPs);
     void InformNewBigChange();
     int GetLastBigChangeIdx();
 
@@ -88,7 +85,7 @@ public:
     std::vector<MapPoint*> GetReferenceMapPoints();
 
     long unsigned int MapPointsInMap();
-    long unsigned  KeyFramesInMap();
+    long unsigned KeyFramesInMap();
 
     long unsigned int GetId();
 
@@ -117,8 +114,11 @@ public:
     void SetImuInitialized();
     bool isImuInitialized();
 
-    void RotateMap(const cv::Mat &R);
-    void ApplyScaledRotation(const cv::Mat &R, const float s, const bool bScaledVel=false, const cv::Mat t=cv::Mat::zeros(cv::Size(1,3),CV_32F));
+    void RotateMap(const cv::Mat& R);
+    void ApplyScaledRotation(const cv::Mat& R,
+                             const float s,
+                             const bool bScaledVel = false,
+                             const cv::Mat t = cv::Mat::zeros(cv::Size(1, 3), CV_32F));
 
     void SetInertialSensor();
     bool IsInertial();
@@ -133,10 +133,16 @@ public:
 
     unsigned int GetLowerKFID();
 
-    void PreSave(std::set<GeometricCamera*> &spCams);
-    void PostLoad(KeyFrameDatabase* pKFDB, ORBVocabulary* pORBVoc, map<long unsigned int, KeyFrame*>& mpKeyFrameId, map<unsigned int, GeometricCamera*> &mpCams);
+    void PreSave(std::set<GeometricCamera*>& spCams);
+    void PostLoad(KeyFrameDatabase* pKFDB,
+                  std::shared_ptr<ORBVocabulary> pORBVoc,
+                  map<long unsigned int, KeyFrame*>& mpKeyFrameId,
+                  map<unsigned int, GeometricCamera*>& mpCams);
 
-    void printReprojectionError(list<KeyFrame*> &lpLocalWindowKFs, KeyFrame* mpCurrentKF, string &name, string &name_folder);
+    void printReprojectionError(list<KeyFrame*>& lpLocalWindowKFs,
+                                KeyFrame* mpCurrentKF,
+                                string& name,
+                                string& name_folder);
 
     vector<KeyFrame*> mvpKeyFrameOrigins;
     vector<unsigned long int> mvBackupKeyFrameOriginsId;
@@ -154,8 +160,7 @@ public:
 
     static long unsigned int nNextId;
 
-protected:
-
+  protected:
     long unsigned int mnId;
 
     std::set<MapPoint*> mspMapPoints;
@@ -195,6 +200,6 @@ protected:
     std::mutex mMutexMap;
 };
 
-} //namespace ORB_SLAM3
+}  // namespace ORB_SLAM3
 
-#endif // MAP_H
+#endif  // MAP_H
