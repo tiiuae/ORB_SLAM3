@@ -12,6 +12,13 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O3 -pthread")
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -march=native")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native -pthread")
 
+#find_package(OpenMP)
+#if (OPENMP_FOUND)
+#    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+#    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+#    set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+#endif()
+
 # Check C++11 or C++0x support
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
@@ -72,7 +79,6 @@ set(H_FILES
         include/KeyFrameDatabase.h
         include/Sim3Solver.h
         include/Initializer.h
-        include/Viewer.h
         include/ImuTypes.h
         include/G2oTypes.h
         include/CameraModels/GeometricCamera.h
@@ -111,6 +117,10 @@ add_library(${PROJECT_NAME} STATIC
         src/MLPnPsolver.cpp
         src/TwoViewReconstruction.cc)
 
+#if(OpenMP_CXX_FOUND)
+#    target_link_libraries(${PROJECT_NAME} PUBLIC OpenMP::OpenMP_CXX)
+#endif()
+
 add_subdirectory(Thirdparty/g2o)
 
 add_subdirectory(Thirdparty/DBoW2)
@@ -125,53 +135,6 @@ target_link_libraries(${PROJECT_NAME}
         -lboost_serialization
         -lcrypto
         )
-
-
-# Build examples
-#
-#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/Examples/RGB-D)
-#add_executable(rgbd_tum Examples/RGB-D/rgbd_tum.cc)
-#target_link_libraries(rgbd_tum ${PROJECT_NAME})
-#
-#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/Examples/Stereo)
-#add_executable(stereo_kitti Examples/Stereo/stereo_kitti.cc)
-#target_link_libraries(stereo_kitti ${PROJECT_NAME})
-#
-#add_executable(stereo_euroc Examples/Stereo/stereo_euroc.cc)
-#target_link_libraries(stereo_euroc ${PROJECT_NAME})
-#
-#add_executable(stereo_tum_vi Examples/Stereo/stereo_tum_vi.cc)
-#target_link_libraries(stereo_tum_vi ${PROJECT_NAME})
-#
-#
-#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/Examples/Monocular)
-#add_executable(mono_tum Examples/Monocular/mono_tum.cc)
-#target_link_libraries(mono_tum ${PROJECT_NAME})
-#
-#add_executable(mono_kitti Examples/Monocular/mono_kitti.cc)
-#target_link_libraries(mono_kitti ${PROJECT_NAME})
-#
-#add_executable(mono_euroc Examples/Monocular/mono_euroc.cc)
-#target_link_libraries(mono_euroc ${PROJECT_NAME})
-#
-#add_executable(mono_tum_vi Examples/Monocular/mono_tum_vi.cc)
-#target_link_libraries(mono_tum_vi ${PROJECT_NAME})
-#
-#
-#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/Examples/Monocular-Inertial)
-#add_executable(mono_inertial_euroc Examples/Monocular-Inertial/mono_inertial_euroc.cc)
-#target_link_libraries(mono_inertial_euroc ${PROJECT_NAME})
-#
-#add_executable(mono_inertial_tum_vi Examples/Monocular-Inertial/mono_inertial_tum_vi.cc)
-#target_link_libraries(mono_inertial_tum_vi ${PROJECT_NAME})
-#
-#
-#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/Examples/Stereo-Inertial)
-#add_executable(stereo_inertial_euroc Examples/Stereo-Inertial/stereo_inertial_euroc.cc)
-#target_link_libraries(stereo_inertial_euroc ${PROJECT_NAME})
-#
-#add_executable(stereo_inertial_tum_vi Examples/Stereo-Inertial/stereo_inertial_tum_vi.cc)
-#target_link_libraries(stereo_inertial_tum_vi ${PROJECT_NAME})
 
 
 # INSTALL ORB_SLAM3

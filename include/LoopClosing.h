@@ -55,9 +55,8 @@ class LoopClosing
                 std::shared_ptr<ORBVocabulary> pVoc,
                 const bool bFixScale);
 
-    void SetTracker(std::shared_ptr<Tracking> pTracker);
-
-    void SetLocalMapper(std::shared_ptr<LocalMapping> pLocalMapper);
+    void SetTracker(std::shared_ptr<Tracking>& pTracker);
+    void SetLocalMapper(std::shared_ptr<LocalMapping>& pLocalMapper);
 
     // Main function
     void Run();

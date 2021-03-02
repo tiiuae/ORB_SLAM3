@@ -136,7 +136,7 @@ Frame::Frame(const cv::Mat& imLeft,
              const double& timeStamp,
              ORBextractor* extractorLeft,
              ORBextractor* extractorRight,
-             std::shared_ptr<ORBVocabulary> voc,
+             std::shared_ptr<ORBVocabulary>& voc,
              cv::Mat& K,
              cv::Mat& distCoef,
              const float& bf,
@@ -265,7 +265,7 @@ Frame::Frame(const cv::Mat& imGray,
              const cv::Mat& imDepth,
              const double& timeStamp,
              ORBextractor* extractor,
-             std::shared_ptr<ORBVocabulary> voc,
+             std::shared_ptr<ORBVocabulary>& voc,
              cv::Mat& K,
              cv::Mat& distCoef,
              const float& bf,
@@ -373,32 +373,35 @@ Frame::Frame(const cv::Mat& imGray,
 Frame::Frame(const cv::Mat& imGray,
              const double& timeStamp,
              ORBextractor* extractor,
-             std::shared_ptr<ORBVocabulary> voc,
+             std::shared_ptr<ORBVocabulary>& voc,
              GeometricCamera* pCamera,
              cv::Mat& distCoef,
              const float& bf,
              const float& thDepth,
              Frame* pPrevF,
              const IMU::Calib& ImuCalib)
-    : mpcpi(NULL),
+    : mpcpi(nullptr),
       mpORBvocabulary(voc),
       mpORBextractorLeft(extractor),
-      mpORBextractorRight(static_cast<ORBextractor*>(NULL)),
+      mpORBextractorRight(nullptr),
       mTimeStamp(timeStamp),
-      mK(static_cast<Pinhole*>(pCamera)->toK()),
+      mK(dynamic_cast<Pinhole*>(pCamera)->toK()),
       mDistCoef(distCoef.clone()),
       mbf(bf),
       mThDepth(thDepth),
       mImuCalib(ImuCalib),
-      mpImuPreintegrated(NULL),
+      mpImuPreintegrated(nullptr),
+      mpLastKeyFrame(nullptr),
       mpPrevFrame(pPrevF),
-      mpImuPreintegratedFrame(NULL),
-      mpReferenceKF(static_cast<KeyFrame*>(NULL)),
+      mpImuPreintegratedFrame(nullptr),
+      mpReferenceKF(nullptr),
+      mnDataset(0),
+      mTimeStereoMatch(0),
+      mTimeORB_Ext(0),
       mbImuPreintegrated(false),
       mpCamera(pCamera),
-      mpCamera2(nullptr),
-      mTimeStereoMatch(0),
-      mTimeORB_Ext(0)
+      mpCamera2(nullptr)
+
 {
     // Frame ID
     mnId = nNextId++;
@@ -426,6 +429,7 @@ Frame::Frame(const cv::Mat& imGray,
 #endif
 
     N = mvKeys.size();
+    std::cout << "Frame::Frame() N=" << N << std::endl;
     if (mvKeys.empty())
         return;
 
@@ -436,7 +440,7 @@ Frame::Frame(const cv::Mat& imGray,
     mvDepth = vector<float>(N, -1);
     mnCloseMPs = 0;
 
-    mvpMapPoints = vector<MapPoint*>(N, static_cast<MapPoint*>(NULL));
+    mvpMapPoints = vector<MapPoint*>(N, nullptr);
 
     mmProjectPoints.clear();  // = map<long unsigned int, cv::Point2f>(N, static_cast<cv::Point2f>(NULL));
     mmMatchedInImage.clear();
@@ -451,10 +455,10 @@ Frame::Frame(const cv::Mat& imGray,
         mfGridElementWidthInv = static_cast<float>(FRAME_GRID_COLS) / static_cast<float>(mnMaxX - mnMinX);
         mfGridElementHeightInv = static_cast<float>(FRAME_GRID_ROWS) / static_cast<float>(mnMaxY - mnMinY);
 
-        fx = static_cast<Pinhole*>(mpCamera)->toK().at<float>(0, 0);
-        fy = static_cast<Pinhole*>(mpCamera)->toK().at<float>(1, 1);
-        cx = static_cast<Pinhole*>(mpCamera)->toK().at<float>(0, 2);
-        cy = static_cast<Pinhole*>(mpCamera)->toK().at<float>(1, 2);
+        fx = dynamic_cast<Pinhole*>(mpCamera)->toK().at<float>(0, 0);
+        fy = dynamic_cast<Pinhole*>(mpCamera)->toK().at<float>(1, 1);
+        cx = dynamic_cast<Pinhole*>(mpCamera)->toK().at<float>(0, 2);
+        cy = dynamic_cast<Pinhole*>(mpCamera)->toK().at<float>(1, 2);
         invfx = 1.0f / fx;
         invfy = 1.0f / fy;
 

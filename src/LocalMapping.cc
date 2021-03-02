@@ -76,12 +76,12 @@ LocalMapping::LocalMapping(System* pSys,
     BA, KFCulling, [numFixKF_LBA]" << endl; f_lm << fixed;*/
 }
 
-void LocalMapping::SetLoopCloser(std::shared_ptr<LoopClosing> pLoopCloser)
+void LocalMapping::SetLoopCloser(std::shared_ptr<LoopClosing>& pLoopCloser)
 {
     mpLoopCloser = pLoopCloser;
 }
 
-void LocalMapping::SetTracker(std::shared_ptr<Tracking> pTracker)
+void LocalMapping::SetTracker(std::shared_ptr<Tracking>& pTracker)
 {
     mpTracker = pTracker;
 }

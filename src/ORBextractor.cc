@@ -794,6 +794,7 @@ void ORBextractor::ComputeKeyPointsOctTree(vector<vector<KeyPoint> >& allKeypoin
             if (maxY > maxBorderY)
                 maxY = maxBorderY;
 
+            //#pragma omp parallel for
             for (int j = 0; j < nCols; j++)
             {
                 const float iniX = minBorderX + j * wCell;
@@ -843,7 +844,10 @@ void ORBextractor::ComputeKeyPointsOctTree(vector<vector<KeyPoint> >& allKeypoin
                     {
                         (*vit).pt.x += j * wCell;
                         (*vit).pt.y += i * hCell;
-                        vToDistributeKeys.push_back(*vit);
+                        //#pragma omp critical
+                        {
+                            vToDistributeKeys.push_back(*vit);
+                        };
                     }
                 }
             }

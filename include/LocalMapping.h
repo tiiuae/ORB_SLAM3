@@ -45,9 +45,8 @@ class LocalMapping
                  bool bInertial,
                  const string& _strSeqName = std::string());
 
-    void SetLoopCloser(std::shared_ptr<LoopClosing> pLoopCloser);
-
-    void SetTracker(std::shared_ptr<Tracking> pTracker);
+    void SetLoopCloser(std::shared_ptr<LoopClosing>& pLoopCloser);
+    void SetTracker(std::shared_ptr<Tracking>& pTracker);
 
     // Main function
     void Run();

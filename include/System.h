@@ -22,6 +22,12 @@
 
 //#define SAVE_TIMES
 
+#include "Atlas.h"
+#include "ImuTypes.h"
+#include "KeyFrameDatabase.h"
+#include "LocalMapping.h"
+#include "LoopClosing.h"
+#include "ORBVocabulary.h"
 #include "Tracking.h"
 #include <opencv2/core/core.hpp>
 #include <unistd.h>
@@ -29,15 +35,6 @@
 #include <stdlib.h>
 #include <string>
 #include <thread>
-//#include "FrameDrawer.h"
-//#include "MapDrawer.h"
-#include "Atlas.h"
-#include "ImuTypes.h"
-#include "KeyFrameDatabase.h"
-#include "LocalMapping.h"
-#include "LoopClosing.h"
-#include "ORBVocabulary.h"
-#include "Viewer.h"
 
 namespace ORB_SLAM3
 {
@@ -66,8 +63,6 @@ class Verbose
     static void SetTh(eLevel _th) { th = _th; }
 };
 
-// class Viewer;
-// class FrameDrawer;
 class Atlas;
 class Tracking;
 class LocalMapping;
@@ -98,10 +93,8 @@ class System
     System(const string& strVocFile,
            const string& strSettingsFile,
            const eSensor sensor,
-           const bool bUseViewer = false,
            const int initFr = 0,
-           const string& strSequence = std::string(),
-           const string& strLoadingFile = std::string());
+           const string& strSequence = std::string());
 
     // Proccess the given stereo frame. Images must be synchronized and rectified.
     // Input images: RGB (CV_8UC3) or grayscale (CV_8U). RGB is converted to grayscale.

@@ -45,26 +45,26 @@ LoopClosing::LoopClosing(std::shared_ptr<Atlas> pAtlas,
       mbRunningGBA(false),
       mbFinishedGBA(true),
       mbStopGBA(false),
-      mpThreadGBA(NULL),
-      mbFixScale(bFixScale),
-      mnFullBAIdx(0),
+      mpThreadGBA(nullptr),
       mnLoopNumCoincidences(0),
-      mnMergeNumCoincidences(0),
+      mbFixScale(bFixScale),
       mbLoopDetected(false),
-      mbMergeDetected(false),
+      mnFullBAIdx(0),
       mnLoopNumNotFound(0),
+      mnMergeNumCoincidences(0),
+      mbMergeDetected(false),
       mnMergeNumNotFound(0)
 {
     mnCovisibilityConsistencyTh = 3;
     mpLastCurrentKF = static_cast<KeyFrame*>(NULL);
 }
 
-void LoopClosing::SetTracker(std::shared_ptr<Tracking> pTracker)
+void LoopClosing::SetTracker(std::shared_ptr<Tracking>& pTracker)
 {
     mpTracker = pTracker;
 }
 
-void LoopClosing::SetLocalMapper(std::shared_ptr<LocalMapping> pLocalMapper)
+void LoopClosing::SetLocalMapper(std::shared_ptr<LocalMapping>& pLocalMapper)
 {
     mpLocalMapper = pLocalMapper;
 }
@@ -465,7 +465,7 @@ bool LoopClosing::NewDetectCommonRegions()
     //-------------
     // TODO: This is only necessary if we use a minimun score for pick the best candidates
     const vector<KeyFrame*> vpConnectedKeyFrames = mpCurrentKF->GetVectorCovisibleKeyFrames();
-    const DBoW2::BowVector& CurrentBowVec = mpCurrentKF->mBowVec;
+    // const DBoW2::BowVector& CurrentBowVec = mpCurrentKF->mBowVec;
     /*float minScore = 1;
     for(size_t i=0; i<vpConnectedKeyFrames.size(); i++)
     {
@@ -629,7 +629,7 @@ bool LoopClosing::DetectCommonRegionsFromBoW(std::vector<KeyFrame*>& vpBowCand,
 
     ORBmatcher matcherBoW(0.9, true);
     ORBmatcher matcher(0.75, true);
-    int nNumGuidedMatching = 0;
+    // int nNumGuidedMatching = 0;
 
     // Varibles to select the best numbe
     KeyFrame* pBestMatchedKF;
@@ -746,7 +746,7 @@ bool LoopClosing::DetectCommonRegionsFromBoW(std::vector<KeyFrame*>& vpBowCand,
                 // int nNumCovisibles = 5;
                 vpCovKFi.clear();
                 vpCovKFi = pMostBoWMatchesKF->GetBestCovisibilityKeyFrames(nNumCovisibles);
-                int nInitialCov = vpCovKFi.size();
+                // int nInitialCov = vpCovKFi.size();
                 vpCovKFi.push_back(pMostBoWMatchesKF);
                 set<KeyFrame*> spCheckKFs(vpCovKFi.begin(), vpCovKFi.end());
 
@@ -856,7 +856,8 @@ bool LoopClosing::DetectCommonRegionsFromBoW(std::vector<KeyFrame*>& vpBowCand,
                                 }
                             }
                             // cout << "BoW: Coord in X -> " << min_x << ", " << max_x << "; and Y -> " << min_y << ", "
-                            // << max_y << endl; cout << "BoW: features area in X -> " << (max_x - min_x) << " and Y -> "
+                            // << max_y << endl; cout << "BoW: features area in X -> " << (max_x - min_x) << " and Y ->
+                            // "
                             // << (max_y - min_y) << endl;
 
                             int nNumKFs = 0;

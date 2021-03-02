@@ -897,12 +897,12 @@ bool Tracking::ParseIMUParamFile(cv::FileStorage& fSettings)
     return true;
 }
 
-void Tracking::SetLocalMapper(std::shared_ptr<LocalMapping> pLocalMapper)
+void Tracking::SetLocalMapper(std::shared_ptr<LocalMapping>& pLocalMapper)
 {
     mpLocalMapper = pLocalMapper;
 }
 
-void Tracking::SetLoopClosing(std::shared_ptr<LoopClosing> pLoopClosing)
+void Tracking::SetLoopClosing(std::shared_ptr<LoopClosing>& pLoopClosing)
 {
     mpLoopClosing = pLoopClosing;
 }
@@ -916,182 +916,183 @@ void Tracking::SetLoopClosing(std::shared_ptr<LoopClosing> pLoopClosing)
 //{
 //    bStepByStep = bSet;
 //}
-
-cv::Mat Tracking::GrabImageStereo(const cv::Mat& imRectLeft,
-                                  const cv::Mat& imRectRight,
-                                  const double& timestamp,
-                                  string filename)
-{
-    mImGray = imRectLeft;
-    cv::Mat imGrayRight = imRectRight;
-    mImRight = imRectRight;
-
-    if (mImGray.channels() == 3)
-    {
-        if (mbRGB)
-        {
-            cvtColor(mImGray, mImGray, cv::COLOR_RGB2GRAY);
-            cvtColor(imGrayRight, imGrayRight, cv::COLOR_RGB2GRAY);
-        }
-        else
-        {
-            cvtColor(mImGray, mImGray, cv::COLOR_BGR2GRAY);
-            cvtColor(imGrayRight, imGrayRight, cv::COLOR_BGR2GRAY);
-        }
-    }
-    else if (mImGray.channels() == 4)
-    {
-        if (mbRGB)
-        {
-            cvtColor(mImGray, mImGray, cv::COLOR_RGBA2GRAY);
-            cvtColor(imGrayRight, imGrayRight, cv::COLOR_RGBA2GRAY);
-        }
-        else
-        {
-            cvtColor(mImGray, mImGray, cv::COLOR_BGRA2GRAY);
-            cvtColor(imGrayRight, imGrayRight, cv::COLOR_BGRA2GRAY);
-        }
-    }
-
-    if (mSensor == System::STEREO && !mpCamera2)
-        mCurrentFrame = Frame(mImGray,
-                              imGrayRight,
-                              timestamp,
-                              mpORBextractorLeft,
-                              mpORBextractorRight,
-                              mpORBVocabulary,
-                              mK,
-                              mDistCoef,
-                              mbf,
-                              mThDepth,
-                              mpCamera);
-    else if (mSensor == System::STEREO && mpCamera2)
-        mCurrentFrame = Frame(mImGray,
-                              imGrayRight,
-                              timestamp,
-                              mpORBextractorLeft,
-                              mpORBextractorRight,
-                              mpORBVocabulary,
-                              mK,
-                              mDistCoef,
-                              mbf,
-                              mThDepth,
-                              mpCamera,
-                              mpCamera2,
-                              mTlr);
-    else if (mSensor == System::IMU_STEREO && !mpCamera2)
-        mCurrentFrame = Frame(mImGray,
-                              imGrayRight,
-                              timestamp,
-                              mpORBextractorLeft,
-                              mpORBextractorRight,
-                              mpORBVocabulary,
-                              mK,
-                              mDistCoef,
-                              mbf,
-                              mThDepth,
-                              mpCamera,
-                              &mLastFrame,
-                              *mpImuCalib);
-    else if (mSensor == System::IMU_STEREO && mpCamera2)
-        mCurrentFrame = Frame(mImGray,
-                              imGrayRight,
-                              timestamp,
-                              mpORBextractorLeft,
-                              mpORBextractorRight,
-                              mpORBVocabulary,
-                              mK,
-                              mDistCoef,
-                              mbf,
-                              mThDepth,
-                              mpCamera,
-                              mpCamera2,
-                              mTlr,
-                              &mLastFrame,
-                              *mpImuCalib);
-
-    std::chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
-    mCurrentFrame.mNameFile = filename;
-    mCurrentFrame.mnDataset = mnNumDataset;
-
-    Track();
-
-    std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
-
-    double t_track = std::chrono::duration_cast<std::chrono::duration<double, std::milli>>(t1 - t0).count();
-
-    /*cout << "trracking time: " << t_track << endl;
-    f_track_stats << setprecision(0) << mCurrentFrame.mTimeStamp*1e9 << ",";
-    f_track_stats << mvpLocalKeyFrames.size() << ",";
-    f_track_stats << mvpLocalMapPoints.size() << ",";
-    f_track_stats << setprecision(6) << t_track << endl;*/
-
-#ifdef SAVE_TIMES
-    f_track_times << mCurrentFrame.mTimeORB_Ext << ",";
-    f_track_times << mCurrentFrame.mTimeStereoMatch << ",";
-    f_track_times << mTime_PreIntIMU << ",";
-    f_track_times << mTime_PosePred << ",";
-    f_track_times << mTime_LocalMapTrack << ",";
-    f_track_times << mTime_NewKF_Dec << ",";
-    f_track_times << t_track << endl;
-#endif
-
-    return mCurrentFrame.mTcw.clone();
-}
-
-cv::Mat Tracking::GrabImageRGBD(const cv::Mat& imRGB, const cv::Mat& imD, const double& timestamp, string filename)
-{
-    mImGray = imRGB;
-    cv::Mat imDepth = imD;
-
-    if (mImGray.channels() == 3)
-    {
-        if (mbRGB)
-            cvtColor(mImGray, mImGray, cv::COLOR_RGB2GRAY);
-        else
-            cvtColor(mImGray, mImGray, cv::COLOR_BGR2GRAY);
-    }
-    else if (mImGray.channels() == 4)
-    {
-        if (mbRGB)
-            cvtColor(mImGray, mImGray, cv::COLOR_RGBA2GRAY);
-        else
-            cvtColor(mImGray, mImGray, cv::COLOR_BGRA2GRAY);
-    }
-
-    if ((fabs(mDepthMapFactor - 1.0f) > 1e-5) || imDepth.type() != CV_32F)
-        imDepth.convertTo(imDepth, CV_32F, mDepthMapFactor);
-
-    std::chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
-    mCurrentFrame =
-        Frame(mImGray, imDepth, timestamp, mpORBextractorLeft, mpORBVocabulary, mK, mDistCoef, mbf, mThDepth, mpCamera);
-
-    mCurrentFrame.mNameFile = filename;
-    mCurrentFrame.mnDataset = mnNumDataset;
-
-    Track();
-
-    std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
-
-    double t_track = std::chrono::duration_cast<std::chrono::duration<double, std::milli>>(t1 - t0).count();
-
-    /*f_track_stats << setprecision(0) << mCurrentFrame.mTimeStamp*1e9 << ",";
-    f_track_stats << mvpLocalKeyFrames.size() << ",";
-    f_track_stats << mvpLocalMapPoints.size() << ",";
-    f_track_stats << setprecision(6) << t_track << endl;*/
-
-#ifdef SAVE_TIMES
-    f_track_times << mCurrentFrame.mTimeORB_Ext << ",";
-    f_track_times << mCurrentFrame.mTimeStereoMatch << ",";
-    f_track_times << mTime_PreIntIMU << ",";
-    f_track_times << mTime_PosePred << ",";
-    f_track_times << mTime_LocalMapTrack << ",";
-    f_track_times << mTime_NewKF_Dec << ",";
-    f_track_times << t_track << endl;
-#endif
-
-    return mCurrentFrame.mTcw.clone();
-}
+//
+// cv::Mat Tracking::GrabImageStereo(const cv::Mat& imRectLeft,
+//                                  const cv::Mat& imRectRight,
+//                                  const double& timestamp,
+//                                  string filename)
+//{
+//    mImGray = imRectLeft;
+//    cv::Mat imGrayRight = imRectRight;
+//    mImRight = imRectRight;
+//
+//    if (mImGray.channels() == 3)
+//    {
+//        if (mbRGB)
+//        {
+//            cvtColor(mImGray, mImGray, cv::COLOR_RGB2GRAY);
+//            cvtColor(imGrayRight, imGrayRight, cv::COLOR_RGB2GRAY);
+//        }
+//        else
+//        {
+//            cvtColor(mImGray, mImGray, cv::COLOR_BGR2GRAY);
+//            cvtColor(imGrayRight, imGrayRight, cv::COLOR_BGR2GRAY);
+//        }
+//    }
+//    else if (mImGray.channels() == 4)
+//    {
+//        if (mbRGB)
+//        {
+//            cvtColor(mImGray, mImGray, cv::COLOR_RGBA2GRAY);
+//            cvtColor(imGrayRight, imGrayRight, cv::COLOR_RGBA2GRAY);
+//        }
+//        else
+//        {
+//            cvtColor(mImGray, mImGray, cv::COLOR_BGRA2GRAY);
+//            cvtColor(imGrayRight, imGrayRight, cv::COLOR_BGRA2GRAY);
+//        }
+//    }
+//
+//    if (mSensor == System::STEREO && !mpCamera2)
+//        mCurrentFrame = Frame(mImGray,
+//                              imGrayRight,
+//                              timestamp,
+//                              mpORBextractorLeft,
+//                              mpORBextractorRight,
+//                              mpORBVocabulary,
+//                              mK,
+//                              mDistCoef,
+//                              mbf,
+//                              mThDepth,
+//                              mpCamera);
+//    else if (mSensor == System::STEREO && mpCamera2)
+//        mCurrentFrame = Frame(mImGray,
+//                              imGrayRight,
+//                              timestamp,
+//                              mpORBextractorLeft,
+//                              mpORBextractorRight,
+//                              mpORBVocabulary,
+//                              mK,
+//                              mDistCoef,
+//                              mbf,
+//                              mThDepth,
+//                              mpCamera,
+//                              mpCamera2,
+//                              mTlr);
+//    else if (mSensor == System::IMU_STEREO && !mpCamera2)
+//        mCurrentFrame = Frame(mImGray,
+//                              imGrayRight,
+//                              timestamp,
+//                              mpORBextractorLeft,
+//                              mpORBextractorRight,
+//                              mpORBVocabulary,
+//                              mK,
+//                              mDistCoef,
+//                              mbf,
+//                              mThDepth,
+//                              mpCamera,
+//                              &mLastFrame,
+//                              *mpImuCalib);
+//    else if (mSensor == System::IMU_STEREO && mpCamera2)
+//        mCurrentFrame = Frame(mImGray,
+//                              imGrayRight,
+//                              timestamp,
+//                              mpORBextractorLeft,
+//                              mpORBextractorRight,
+//                              mpORBVocabulary,
+//                              mK,
+//                              mDistCoef,
+//                              mbf,
+//                              mThDepth,
+//                              mpCamera,
+//                              mpCamera2,
+//                              mTlr,
+//                              &mLastFrame,
+//                              *mpImuCalib);
+//
+//    std::chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
+//    mCurrentFrame.mNameFile = filename;
+//    mCurrentFrame.mnDataset = mnNumDataset;
+//
+//    Track();
+//
+//    std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
+//
+//    double t_track = std::chrono::duration_cast<std::chrono::duration<double, std::milli>>(t1 - t0).count();
+//
+//    /*cout << "trracking time: " << t_track << endl;
+//    f_track_stats << setprecision(0) << mCurrentFrame.mTimeStamp*1e9 << ",";
+//    f_track_stats << mvpLocalKeyFrames.size() << ",";
+//    f_track_stats << mvpLocalMapPoints.size() << ",";
+//    f_track_stats << setprecision(6) << t_track << endl;*/
+//
+//#ifdef SAVE_TIMES
+//    f_track_times << mCurrentFrame.mTimeORB_Ext << ",";
+//    f_track_times << mCurrentFrame.mTimeStereoMatch << ",";
+//    f_track_times << mTime_PreIntIMU << ",";
+//    f_track_times << mTime_PosePred << ",";
+//    f_track_times << mTime_LocalMapTrack << ",";
+//    f_track_times << mTime_NewKF_Dec << ",";
+//    f_track_times << t_track << endl;
+//#endif
+//
+//    return mCurrentFrame.mTcw.clone();
+//}
+//
+// cv::Mat Tracking::GrabImageRGBD(const cv::Mat& imRGB, const cv::Mat& imD, const double& timestamp, string filename)
+//{
+//    mImGray = imRGB;
+//    cv::Mat imDepth = imD;
+//
+//    if (mImGray.channels() == 3)
+//    {
+//        if (mbRGB)
+//            cvtColor(mImGray, mImGray, cv::COLOR_RGB2GRAY);
+//        else
+//            cvtColor(mImGray, mImGray, cv::COLOR_BGR2GRAY);
+//    }
+//    else if (mImGray.channels() == 4)
+//    {
+//        if (mbRGB)
+//            cvtColor(mImGray, mImGray, cv::COLOR_RGBA2GRAY);
+//        else
+//            cvtColor(mImGray, mImGray, cv::COLOR_BGRA2GRAY);
+//    }
+//
+//    if ((fabs(mDepthMapFactor - 1.0f) > 1e-5) || imDepth.type() != CV_32F)
+//        imDepth.convertTo(imDepth, CV_32F, mDepthMapFactor);
+//
+//    std::chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
+//    mCurrentFrame =
+//        Frame(mImGray, imDepth, timestamp, mpORBextractorLeft, mpORBVocabulary, mK, mDistCoef, mbf, mThDepth,
+//        mpCamera);
+//
+//    mCurrentFrame.mNameFile = filename;
+//    mCurrentFrame.mnDataset = mnNumDataset;
+//
+//    Track();
+//
+//    std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
+//
+//    double t_track = std::chrono::duration_cast<std::chrono::duration<double, std::milli>>(t1 - t0).count();
+//
+//    /*f_track_stats << setprecision(0) << mCurrentFrame.mTimeStamp*1e9 << ",";
+//    f_track_stats << mvpLocalKeyFrames.size() << ",";
+//    f_track_stats << mvpLocalMapPoints.size() << ",";
+//    f_track_stats << setprecision(6) << t_track << endl;*/
+//
+//#ifdef SAVE_TIMES
+//    f_track_times << mCurrentFrame.mTimeORB_Ext << ",";
+//    f_track_times << mCurrentFrame.mTimeStereoMatch << ",";
+//    f_track_times << mTime_PreIntIMU << ",";
+//    f_track_times << mTime_PosePred << ",";
+//    f_track_times << mTime_LocalMapTrack << ",";
+//    f_track_times << mTime_NewKF_Dec << ",";
+//    f_track_times << t_track << endl;
+//#endif
+//
+//    return mCurrentFrame.mTcw.clone();
+//}
 
 cv::Mat Tracking::GrabImageMonocular(const cv::Mat& im, const double& timestamp, string filename)
 {
@@ -1114,12 +1115,19 @@ cv::Mat Tracking::GrabImageMonocular(const cv::Mat& im, const double& timestamp,
 
     if (mSensor == System::MONOCULAR)
     {
+        std::cout << "Tracking::GrabImageMonocular: ";
         if (mState == NOT_INITIALIZED || mState == NO_IMAGES_YET || (lastID - initID) < mMaxFrames)
+        {
+            std::cout << "NOT_INITIALIZED" << std::endl;
             mCurrentFrame =
                 Frame(mImGray, timestamp, mpIniORBextractor, mpORBVocabulary, mpCamera, mDistCoef, mbf, mThDepth);
+        }
         else
+        {
+            std::cout << "INITIALIZED" << std::endl;
             mCurrentFrame =
                 Frame(mImGray, timestamp, mpORBextractorLeft, mpORBVocabulary, mpCamera, mDistCoef, mbf, mThDepth);
+        }
     }
     else if (mSensor == System::IMU_MONOCULAR)
     {
@@ -1477,6 +1485,7 @@ void Tracking::Track()
     mTime_NewKF_Dec = 0;
 #endif
 
+    std::cout << "Tracking::Track()" << std::endl;
     //    if (bStepByStep)
     //    {
     //        while (!mbStep)
@@ -1572,6 +1581,7 @@ void Tracking::Track()
 
     if (mState == NOT_INITIALIZED)
     {
+        std::cout << "Tracking::Track() mState NOT_INITIALIZED" << std::endl;
         if (mSensor == System::STEREO || mSensor == System::RGBD || mSensor == System::IMU_STEREO)
             StereoInitialization();
         else
@@ -1592,6 +1602,7 @@ void Tracking::Track()
     }
     else
     {
+        std::cout << "Tracking::Track() mState INITIALIZED" << std::endl;
         // System is initialized. Track Frame.
         bool bOK = false;
 
@@ -2092,13 +2103,12 @@ void Tracking::StereoInitialization()
 
 void Tracking::MonocularInitialization()
 {
-
     if (!mpInitializer)
     {
+        std::cout << "Tracking::MonocularInitialization() : mpInitializer == nullptr -> initialize" << std::endl;
         // Set Reference Frame
         if (mCurrentFrame.mvKeys.size() > 100)
         {
-
             mInitialFrame = Frame(mCurrentFrame);
             mLastFrame = Frame(mCurrentFrame);
             mvbPrevMatched.resize(mCurrentFrame.mvKeysUn.size());
@@ -2126,9 +2136,11 @@ void Tracking::MonocularInitialization()
     }
     else
     {
+        std::cout << "Tracking::MonocularInitialization() : mpInitializer already exists -> wait" << std::endl;
         if (((int)mCurrentFrame.mvKeys.size() <= 100) ||
             ((mSensor == System::IMU_MONOCULAR) && (mLastFrame.mTimeStamp - mInitialFrame.mTimeStamp > 1.0)))
         {
+            std::cout << "not enough features -> return" << std::endl;
             delete mpInitializer;
             mpInitializer = static_cast<Initializer*>(NULL);
             fill(mvIniMatches.begin(), mvIniMatches.end(), -1);
@@ -2143,6 +2155,7 @@ void Tracking::MonocularInitialization()
         // Check if there are enough correspondences
         if (nmatches < 100)
         {
+            std::cout << "not enough matches -> return" << std::endl;
             delete mpInitializer;
             mpInitializer = static_cast<Initializer*>(NULL);
             fill(mvIniMatches.begin(), mvIniMatches.end(), -1);
@@ -2156,6 +2169,8 @@ void Tracking::MonocularInitialization()
         if (mpCamera->ReconstructWithTwoViews(
                 mInitialFrame.mvKeysUn, mCurrentFrame.mvKeysUn, mvIniMatches, Rcw, tcw, mvIniP3D, vbTriangulated))
         {
+            std::cout << "triangulating matches " << std::endl;
+
             for (size_t i = 0, iend = mvIniMatches.size(); i < iend; i++)
             {
                 if (mvIniMatches[i] >= 0 && !vbTriangulated[i])
@@ -2182,6 +2197,8 @@ void Tracking::MonocularInitialization()
 
 void Tracking::CreateInitialMapMonocular()
 {
+    std::cout << "Tracking::CreateInitialMapMonocular()" << std::endl;
+
     // Create KeyFrames
     KeyFrame* pKFini = new KeyFrame(mInitialFrame, mpAtlas->GetCurrentMap(), mpKeyFrameDB);
     KeyFrame* pKFcur = new KeyFrame(mCurrentFrame, mpAtlas->GetCurrentMap(), mpKeyFrameDB);

@@ -23,20 +23,18 @@
 #include "Atlas.h"
 #include "Frame.h"
 #include "FrameDrawer.h"
+#include "GeometricCamera.h"
+#include "ImuTypes.h"
 #include "Initializer.h"
 #include "KeyFrameDatabase.h"
 #include "LocalMapping.h"
 #include "LoopClosing.h"
 #include "ORBVocabulary.h"
 #include "ORBextractor.h"
-#include "Viewer.h"
+#include "System.h"
 #include <opencv2/core/core.hpp>
 #include <opencv2/features2d/features2d.hpp>
 #include <opencv2/video/tracking.hpp>
-//#include "MapDrawer.h"
-#include "GeometricCamera.h"
-#include "ImuTypes.h"
-#include "System.h"
 #include <mutex>
 #include <unordered_set>
 
@@ -44,8 +42,6 @@ namespace ORB_SLAM3
 {
 
 class Viewer;
-class MapDrawer;
-class FrameDrawer;
 class Atlas;
 class LocalMapping;
 class LoopClosing;
@@ -71,18 +67,18 @@ class Tracking
     bool ParseIMUParamFile(cv::FileStorage& fSettings);
 
     // Preprocess the input and call Track(). Extract features and performs stereo matching.
-    cv::Mat GrabImageStereo(const cv::Mat& imRectLeft,
-                            const cv::Mat& imRectRight,
-                            const double& timestamp,
-                            string filename);
-    cv::Mat GrabImageRGBD(const cv::Mat& imRGB, const cv::Mat& imD, const double& timestamp, string filename);
+    //    cv::Mat GrabImageStereo(const cv::Mat& imRectLeft,
+    //                            const cv::Mat& imRectRight,
+    //                            const double& timestamp,
+    //                            string filename);
+    //    cv::Mat GrabImageRGBD(const cv::Mat& imRGB, const cv::Mat& imD, const double& timestamp, string filename);
     cv::Mat GrabImageMonocular(const cv::Mat& im, const double& timestamp, string filename);
     // cv::Mat GrabImageImuMonocular(const cv::Mat &im, const double &timestamp);
 
     void GrabImuData(const IMU::Point& imuMeasurement);
 
-    void SetLocalMapper(std::shared_ptr<LocalMapping> pLocalMapper);
-    void SetLoopClosing(std::shared_ptr<LoopClosing> pLoopClosing);
+    void SetLocalMapper(std::shared_ptr<LocalMapping>& pLocalMapper);
+    void SetLoopClosing(std::shared_ptr<LoopClosing>& pLoopClosing);
     //    void SetViewer(Viewer* pViewer);
     //    void SetStepByStep(bool bSet);
 
